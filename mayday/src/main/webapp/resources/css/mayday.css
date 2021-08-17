@@ -1,0 +1,117 @@
+@charset "UTF-8";
+
+.maydayscrollbar {
+	background-color: white;
+	overflow: auto;
+}
+
+.maydayscrollbar::-webkit-scrollbar {
+	width: 5px; /*스크롤바의 너비*/
+}
+
+.maydayscrollbar::-webkit-scrollbar-thumb {
+	background-color: #ffe691 !important; /*스크롤바의 색상*/
+}
+
+.chatscrollbar {
+	display: flex;
+	flex-direction: column-reverse;
+	background-color: white;
+	overflow-y: auto;
+	border-radius: 10px;
+}
+
+.chatscrollbar::-webkit-scrollbar {
+	width: 8px; /*스크롤바의 너비*/
+	height: 20%;
+}
+
+.chatscrollbar::-webkit-scrollbar-thumb {
+	background-color: #ffef9e !important; /*스크롤바의 색상*/
+}
+
+.myMsg {
+	text-align: right;
+}
+
+.anotherMsg {
+	text-align: left;
+	margin-bottom: 5px;
+}
+
+.msg {
+	display: inline-block;
+	border-radius: 15px;
+	padding: 7px 15px;
+	margin-bottom: 10px;
+	margin-top: 5px;
+}
+
+.msgTime {
+	font-size: 12px;
+	display: block;
+}
+
+.anotherMsg>.msg {
+	background-color: #f1f0f0;
+}
+
+.anotherName {
+	font-size: 12px;
+	display: block;
+}
+
+.myMsg>.msg {
+	/* background-color: #ffe691; */
+	border: 2px solid;
+	border-color: #ffe691 !important;
+	color: black;
+}
+.text-size-m{
+	font-size: 1.2rem;
+}
+.hit {
+	animation-name: blink;
+	animation-duration: 2s;
+	animation-timing-function: ease;
+	animation-iteration-count: infinite;
+	font-size: 12px;
+	vertical-align: top;
+}
+
+@keyframes blink {
+	from {color: white;
+	}
+	30%	{
+	color:rgb(116,96,73);
+	}
+	to {
+	color: rgb(232,193,147);
+	
+	}
+}
+.floatingmenu{
+	 width: 6%;
+	 position: fixed;
+      display: inline-block;
+      right: 3%;
+      top: 35%;
+      margin: 0;
+      color: darkslateblue;
+      font-size: small;
+}
+.floatingmenu>a{
+	padding: auto;
+	display: block;
+}
+.floatingmenu>a:link,
+ :visited {
+   color: dimgray;
+ }
+ .floatingmenu>.floatnav{
+    width:100%;
+    padding:auto;
+	 border: 2px solid;
+     border-color: #ffe691 !important;
+     border-radius: 1.5rem;
+ }
