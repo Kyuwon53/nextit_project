@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.petition.service.IPetitionDao">
+	<sql id="search">
+		<if
+			test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<choose>
+				<when test='searchType == "T"'>
+					AND pet_title LIKE '%'||#{searchWord}||'%'
+				</when>
+				<when test='searchType == "C"'>
+					AND pet_content LIKE '%'||#{searchWord}||'%'
+				</when>
+			</choose>
+		</if>
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchOrder)">
+			<choose>
+				
+				<when test='searchOrder =="S"'>
+					ORDER BY pet_start_date DESC
+				</when>
+				<when test='searchOrder =="E"'>
+					ORDER BY pet_end_date ASC
+				</when>
+			</choose>
+		</if>
+		<if test="@org.apache.commons.lang3.StringUtils@isBlank(searchOrder)">
+			ORDER BY bo_no DESC
+		</if>
+	</sql> 
+	
+	<select id="getCountPetition" resultType="int"
+		parameterType="com.mayday.petition.vo.PetitionSearchVO">
+		SELECT count(*) FROM petition WHERE 1=1
+		<include refid="search" /> 
+	</select>
+	<select id="getPetitionList" resultType="com.mayday.petition.vo.PetitionVO" parameterType="com.mayday.petition.vo.PetitionSearchVO" >
+		<include refid="common.prePaging"/>
+		SELECT bo_no
+	       , bo_cd
+	       , pet_title
+	       , pet_content
+	       , pet_link
+	       , to_char(pet_start_date,'YYYY-MM-DD') as pet_start_date
+	       , to_char(pet_end_date,'YYYY-MM-DD') as pet_end_date
+	       , pet_progress
+		FROM petition
+		where 1 = 1
+		<include refid="search"/>
+		<include refid="common.endPaging"/>
+	</select>
+	<select id="getPetition" parameterType="int" resultType="com.mayday.petition.vo.PetitionVO">
+		SELECT bo_no
+	       , bo_cd
+	       , pet_title
+	       , pet_content
+	       , pet_link
+	       , to_char(pet_start_date,'YYYY-MM-DD') as pet_start_date
+	       , to_char(pet_end_date,'YYYY-MM-DD') as pet_end_date
+	       , pet_progress
+		FROM petition
+		WHERE bo_no = #{boNo}
+	</select>
+	<update id="updatePetition" parameterType="com.mayday.petition.vo.PetitionVO">
+		UPDATE petition SET pet_progress = #{petProgress} WHERE bo_no = #{boNo}
+	</update>
+	<delete id="deletePetition" parameterType="com.mayday.petition.vo.PetitionVO">
+		DELETE FROM petition WHERE bo_no = #{boNo}
+	</delete>
+	<insert id="insertPetition" parameterType="com.mayday.petition.vo.PetitionVO">
+		INSERT INTO petition (
+				    bo_no    , bo_cd	    , pet_title
+				    , pet_content	    , pet_link	    , pet_start_date
+				    , pet_end_date    , pet_progress
+					) VALUES (
+					    PETITION_SEQ.NEXTVAL
+					    , 'PET00 '
+					    , #{petTitle}
+					    , #{petContent}
+					    , #{petLink}
+					    , #{petStartDate}
+					    , #{petEndDate}
+					    , #{petProgress}
+					)
+	</insert>
+</mapper>

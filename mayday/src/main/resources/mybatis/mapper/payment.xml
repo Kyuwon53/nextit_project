@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.payment.dao.IPaymentDao">
+<select id="paymentListByMemId" parameterType="com.mayday.payment.vo.PaymentVO" resultType="com.mayday.payment.vo.PaymentVO">
+	SELECT a.mem_id
+	       , lawyer_id
+	       , c.mem_name as client_name
+	       , b.mem_name as lawyer_name
+	       , item_num
+	       , DECODE(item_name,'Call','전화 상담','Message','카카오톡 상담','Meeting','방문 상담') as item_name
+	       , quantity as quantity
+	       , total_amount
+	       , tax_free
+	       , pay_reg_date
+	       , res_date
+	FROM payment a,  member b, member c
+	WHERE lawyer_id = b.mem_id
+	AND a.mem_id = c.mem_id
+	<if test="searchPosit ==null">
+	AND 1!=1
+	</if>
+	<if test='searchPosit=="C"'>
+		AND a.mem_id = #{memId}
+	</if>
+	<if test='searchPosit=="E"'>
+		AND a.lawyer_id = #{memId}
+	</if>
+	ORDER BY pay_reg_date
+</select>
+<select id="paymentTotalCount" parameterType="com.mayday.payment.vo.PaymentVO" resultType="int">
+    SELECT  sum(total_amount)
+	FROM payment
+	<if test="searchPosit ==null">
+	WHERE 1!=1
+	</if>
+	<if test='searchPosit=="C"'>
+	WHERE mem_id = #{memId}
+	</if>
+	<if test='searchPosit=="E"'>
+	WHERE lawyer_id = #{memId}
+	</if>
+</select>
+<insert id="insertPayment" parameterType="com.mayday.payment.vo.PaymentVO">
+INSERT INTO payment VALUES (
+    	#{memId}
+    ,	#{lawyerId}
+    ,	payment_num.nextval
+    ,	#{itemName}
+    ,	#{quantity}
+    ,	#{totalAmount}
+    ,	#{totalAmount} * 0.1
+    ,	sysdate
+    ,	to_date(#{resDate},'yyyy-mm-dd"T"hh24:mi')
+)
+
+</insert>
+</mapper>	

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.replylike.dao.IReplyLikeDao">
+
+<select id="getReplyLikeList" resultType="com.mayday.replylike.vo.ReplyLikeVO" parameterType="com.mayday.replylike.vo.ReplyLikeVO">
+SELECT Like_no
+       , mem_id
+       , reply_no
+FROM replylike
+where mem_id = #{memId}
+and reply_no = #{replyNo}
+</select>
+<select id="getmemLikeNo" parameterType="com.mayday.replylike.vo.ReplyLikeVO" resultType="com.mayday.replylike.vo.ReplyLikeVO">
+select t1.reply_no as mem_like_no
+		from (select like_no
+		             ,mem_id
+		             ,reply_no
+		        from replylike
+		        where mem_id=#{memId}) t1 , (select re_no,
+		                                            re_mem_id
+		                                    from reply
+		                                    where re_parent_no = #{boNo}) t2
+		where t1.reply_no = t2.re_no
+</select>
+<update id="insertReplyLike" parameterType="com.mayday.replylike.vo.ReplyLikeVO">
+INSERT INTO replylike (
+   Like_no
+    , mem_id
+    , reply_no
+) VALUES (
+    replylike_seq.nextval
+    , #{memId}
+    , #{replyNo}
+)
+</update>
+<update id="deleteReplyLike" parameterType="com.mayday.replylike.vo.ReplyLikeVO">
+DELETE FROM replylike
+where mem_id = #{memId}
+and reply_no = #{replyNo}
+</update>
+
+</mapper>

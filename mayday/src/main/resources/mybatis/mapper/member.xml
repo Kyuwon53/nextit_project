@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.member.service.IMemberDao">
+<sql id="search">
+<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchCateMb)">
+	AND mem_posit = #{searchCateMb}
+</if>
+<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchCateSt)">
+	AND MEM_STATE = #{searchCateSt}
+</if>
+<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(memsearchCateSt)">
+	AND MEM_COND = #{memsearchCateSt}
+</if>
+	<if
+			test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<choose>
+				<when test='searchCateType == "id"'>
+					AND mem_id LIKE '%'||#{searchWord}||'%'
+				</when>
+				<when test='searchCateType == "name"'>
+					AND mem_name LIKE '%'||#{searchWord}||'%'
+				</when>
+			</choose>
+		</if>
+</sql>
+<select id="getCountMember" parameterType="com.mayday.member.vo.MemberSearchVO" resultType="int">
+select count(mem_id) from member where 1=1
+<include refid="search"></include>
+</select>
+<select id="getCountExpert" parameterType="com.mayday.member.vo.MemberSearchVO" resultType="int">
+select count(mem_id) from member where 1=1 and mem_posit = 'EXPERT' AND mem_cond = 'Y'
+<include refid="search"></include>
+</select>
+
+<select id="getMemberList" resultType="com.mayday.member.vo.MemberVO">
+<include refid="common.prePaging"></include>
+SELECT mem_id
+       , mem_pass
+       , mem_name
+       , to_char(mem_bir,'YYYY-MM-DD') as mem_bir
+       , mem_phone
+       , mem_mail
+       , mem_add1
+       , mem_add2
+       , mem_career
+       , mem_posit
+       , mem_cond
+       , mem_reg_date
+       , mem_end_date
+FROM member where MEM_POSIT != 'ADMIN' 
+<include refid="search"></include>
+<include refid="common.endPaging"></include>
+</select>
+
+<select id="getMember" parameterType="String" resultType="com.mayday.member.vo.MemberVO">
+SELECT mem_id
+       , mem_pass
+       , mem_name
+       , to_char(mem_bir,'YYYY-MM-DD') as mem_bir
+       , mem_phone
+       , mem_mail
+       , mem_add1
+       , mem_add2
+       , mem_career
+       , mem_posit
+       , mem_cond
+       , mem_reg_date
+       , mem_end_date
+       , mem_state
+FROM member
+where mem_id = #{memId}
+</select>
+<update id="updateMember" parameterType="com.mayday.member.vo.MemberVO" >
+UPDATE member
+SET
+    mem_posit = #{memPosit}
+    , mem_Cond = #{memCond}
+WHERE mem_id = #{memId}
+      
+</update>
+
+<select id="getExpertList" parameterType="com.mayday.member.vo.MemberSearchVO" resultType="com.mayday.member.vo.MemberVO">
+<include refid="common.prePaging"></include>
+SELECT mem_id
+       , mem_pass
+       , mem_name
+       , mem_bir
+       , mem_phone
+       , mem_mail
+       , mem_add1
+       , mem_add2
+       , mem_career
+       , mem_posit
+       , mem_cond
+       , mem_reg_date
+       , mem_end_date as end_Login
+       , mem_state
+FROM member
+where mem_posit = 'EXPERT'
+AND mem_cond = 'Y'
+<include refid="search"></include>
+ORDER BY mem_id
+<include refid="common.endPaging"></include>
+</select>
+
+<select id="getMemRoleByUserId" resultType="String">
+	SELECT mem_posit
+	FROM member
+	WHERE mem_id = #{memId}
+</select>
+
+<insert id="insertMember" parameterType="com.mayday.member.vo.MemberVO">
+	INSERT INTO member VALUES (
+	      #{memId}
+       , #{memPass}
+       , #{memName}
+       , #{memBir}
+       , #{memPhone}
+       , #{memMail}
+       , #{memAdd1}
+       , #{memAdd2}
+       , null
+       , 'CLIENT'
+       , 'Y'
+       , sysdate
+       , sysdate
+       , 'N'
+	)			
+			
+</insert>
+<select id="checkCond" resultType="String">
+	SELECT mem_cond
+	FROM member
+	WHERE mem_id = #{memId}
+</select>
+<insert id="insertLawyer" parameterType="com.mayday.member.vo.MemberVO">
+	INSERT INTO member VALUES (
+	   	  #{memId}
+       , #{memPass}
+       , #{memName}
+       , #{memBir}
+       , #{memPhone}
+       , #{memMail}
+       , #{memAdd1}
+       , #{memAdd2}
+       , #{memCareer}
+       , 'EXPERT'
+       , 'H'
+       , sysdate
+       , sysdate
+       , 'N'
+	)			
+			
+</insert>
+<update id="updateMemberInfo" parameterType="com.mayday.member.vo.MemberVO">
+	UPDATE member
+		SET
+	       mem_pass = #{memPass},
+	       mem_name = #{memName},
+	       mem_bir = #{memBir},
+	       mem_phone = #{memPhone},
+	       mem_mail = #{memMail},
+	       mem_add1 = #{memAdd1},
+	       mem_add2 = #{memAdd2},
+	       mem_career = #{memCareer}
+		WHERE mem_id = #{memId}
+</update>
+
+<select id="findMemberId" resultType="String">
+	SELECT mem_id
+	FROM member
+	WHERE mem_mail = #{memMail}
+</select>
+<select id="findMemberPw" resultType="String">
+	SELECT mem_pass
+	FROM member
+	WHERE mem_mail = #{memMail}
+</select>
+<update id="recentLogin" parameterType="com.mayday.member.vo.MemberVO">
+ UPDATE member SET 
+ mem_end_date = sysdate 
+ where mem_id = #{userId} 
+ </update>
+ <update id="updateMemState" parameterType="com.mayday.member.vo.MemberVO">
+ 	UPDATE member SET mem_state = #{memState} WHERE mem_id = #{memId}
+ </update>
+ <update id="leaveMember" parameterType="com.mayday.member.vo.MemberVO">
+ 	UPDATE member SET mem_cond = 'N' WHERE mem_id = #{memId} AND mem_pass = #{memPass}
+ </update>
+ <update id="changePassWord" parameterType="com.mayday.member.vo.MemberVO">
+ 	UPDATE member	SET mem_pass = #{memPass} WHERE mem_id = #{memId}
+ </update>
+</mapper>

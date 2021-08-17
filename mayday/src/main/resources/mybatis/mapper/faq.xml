@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.faq.service.IFaqDao">
+	<sql id="search">
+		<if
+			test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchCate)">
+			AND faq_cd = #{searchCate}
+		</if>
+		<if
+			test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<choose>
+				<when test='searchType == "T"'>
+					AND bo_title LIKE '%'||#{searchWord}||'%'
+				</when>
+				<when test='searchType == "Q"'>
+					AND bo_que LIKE '%'||#{searchWord}||'%'
+				</when>
+				<when test='searchType == "C"'>
+					AND bo_content LIKE '%'||#{searchWord}||'%'
+				</when>
+			</choose>
+		</if>
+		<if
+			test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchOrder)">
+			<choose>
+				<when test='searchOrder =="B"'>
+					ORDER BY bo_no ASC
+				</when>
+				<when test='searchOrder =="H"'>
+					ORDER BY bo_hit DESC
+				</when>
+			</choose>
+		</if>
+		<if
+			test="@org.apache.commons.lang3.StringUtils@isBlank(searchOrder)">
+			ORDER BY bo_no DESC
+		</if>
+	</sql>
+	<select id="getCountFaq"
+		parameterType="com.mayday.faq.vo.FaqSearchVO" resultType="int">
+		SELECT count(bo_no)
+		FROM faq a, code_board b
+		WHERE 1=1
+		and a.faq_cd = b.code_cd
+		and b.code_parent_cd=#{faqParentCd}
+		<include refid="search" />
+	</select>
+	<select id="getFaqList"
+		parameterType="com.mayday.faq.vo.FaqSearchVO"
+		resultType="com.mayday.faq.vo.FaqVO">
+		<include refid="common.prePaging" />
+		SELECT
+		bo_no
+		, faq_cd
+		, a.mem_id as mem_id
+		, c.mem_name as mem_name
+		, bo_title
+		, bo_que
+		, bo_content
+		, bo_hit
+		, b.code_name as code_name
+		, b.code_parent_cd as
+		code_parent_cd
+		FROM faq a, code_board b, member c
+		WHERE a.faq_cd =
+		b.code_cd
+		AND a.mem_id = c.mem_id
+		AND b.code_parent_cd= #{faqParentCd}
+		<include refid="search" />
+		<include refid="common.endPaging" />
+	</select>
+	<select id="getFaq" parameterType="int"
+		resultType="com.mayday.faq.vo.FaqVO">
+		SELECT rownum as faq_no
+		, bo_no
+		, faq_cd
+		, a.mem_id as mem_id
+		, c.mem_name as mem_name
+		, bo_title
+		, bo_que
+		, bo_content
+		, bo_hit
+		, b.code_name as code_name
+		, b.code_parent_cd as code_parent_cd
+		FROM faq a, code_board b, member c
+		WHERE a.faq_cd = b.code_cd
+		AND a.mem_id = c.mem_id
+		AND bo_no = #{boNo}
+	</select>
+	<update id="increaseHit" parameterType="com.mayday.faq.vo.FaqVO">
+		UPDATE faq
+		SET bo_hit =
+		bo_hit + 1
+		WHERE bo_no = #{boNo}
+	</update>
+	<update id="updateFaq" parameterType="com.mayday.faq.vo.FaqVO">
+		UPDATE faq
+		SET faq_cd =
+		#{faqCd}, bo_title = #{boTitle}, bo_que = #{boQue},
+		bo_content =
+		#{boContent}
+		WHERE bo_no = #{boNo}
+	</update>
+	<delete id="deleteFaq" parameterType="com.mayday.faq.vo.FaqVO">
+		DELETE FROM faq WHERE bo_no
+		= #{boNo}
+	</delete>
+	<insert id="insertFaq" parameterType="com.mayday.faq.vo.FaqVO">
+		INSERT INTO faq ( bo_no ,
+		faq_cd , mem_id ,
+		bo_title , bo_que , bo_content , bo_hit
+		) VALUES (
+		FAQ_SEQ.nextval
+		, #{faqCd}
+		, 'admin'
+		, #{boTitle}
+		, #{boQue}
+		, #{boContent}
+		, 0
+		)
+	</insert>
+</mapper>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.law.service.ILawDao">
+<sql id="search">
+<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchCate)">
+	and LAW_CATE = #{searchCate}
+</if>
+<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchClass)">
+	and LAW_CLASS = #{searchClass}
+</if>
+<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDateType)">
+	<choose>
+	<when test='searchDateType == "공포"'>
+	<choose>
+	<when test="searchDateStart == '' and searchDateEnd == ''">
+	</when>
+	<when test="searchDateStart != '' and searchDateEnd != ''">
+	and law_date between #{searchDateStart} and #{searchDateEnd}
+	</when>
+	<when test="searchDateStart != '' and searchDateEnd == ''">
+	and law_date between #{searchDateStart} and sysdate
+	</when>
+	</choose>
+	</when>
+	<when test='searchDateType == "시행"'>
+	and law_start_date between #{searchDateStart} and #{searchDateEnd}
+	</when>
+	<when test='searchDateEnd == ""'>
+	and law_date between #{searchDateStart} and sysdate
+	</when>
+	</choose>
+</if>
+<if
+			test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<choose>
+				<when test='searchCateType == "NM"'>
+					AND LAW_NAME LIKE '%'||#{searchWord}||'%'
+				</when>
+				<when test='searchCateType == "NO"'>
+					AND LAW_NO Like '%'||#{searchWord}||'%'
+				</when>
+				<when test='searchCateType == "DEP"'>
+					AND LAW_DEP Like '%'||#{searchWord}||'%'
+				</when>
+			</choose>
+		</if>
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchDateOr)">
+		<choose>
+		<when test='searchDateOr =="공포"'>
+		order by LAW_DATE desc
+		</when>
+		<when test='searchDateOr =="시행"'>
+		order by LAW_START_DATE desc
+		</when>
+		</choose>
+	
+	</if>
+</sql>
+<select id="getCountLaw" resultType="int" parameterType="com.mayday.law.service.LawSearchVO">
+select count(bo_no) from law where 1 = 1
+<include refid="search"></include>
+</select>
+<select id="getLawList" resultType="com.mayday.law.service.LawVO">
+<include refid="common.prePaging"></include>
+SELECT bo_no
+       , law_name
+       , to_char(law_date,'YYYY-MM-DD') as law_date
+       , law_cate
+       , law_no
+       , to_char(law_start_date,'YYYY-MM-DD') as law_start_date
+       , law_class
+       , law_dep
+       , law_link
+FROM law
+where 1 = 1
+<include refid="search"></include>
+<include refid="common.endPaging"></include>
+order by row_no
+</select>
+<select id="getLawListForExcel" resultType="com.mayday.law.service.LawVO">
+	SELECT bo_no
+       , law_name
+       , to_char(law_date,'YYYY-MM-DD') as law_date
+       , law_cate
+       , law_no
+       , to_char(law_start_date,'YYYY-MM-DD') as law_start_date
+       , law_class
+       , law_dep
+       , law_link
+FROM law
+</select>
+<update id="deleteLaw" parameterType="com.mayday.law.service.LawVO">
+delete from law
+where bo_no = #{boNo}
+</update>
+</mapper>

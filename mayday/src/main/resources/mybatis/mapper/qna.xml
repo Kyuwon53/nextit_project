@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.qna.service.IQnADao">
+<sql id="search">
+		 <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchCheck)">
+		 	 <if test='searchCheck == "Y"'>
+		 	  AND TB1.ans_mem_id IS NOT NULL
+		 	 </if>
+		 	 <if test='searchCheck == "N"'>
+		 	  AND TB1.ans_mem_id IS NULL
+		 	 </if>
+		 </if>
+		 <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchType)">
+		 	<choose>
+		 		<when test='searchType == "T"'>
+		 			AND TB1.bo_title LIKE '%'||#{searchWord}||'%'
+		 		</when>
+		 		<when test='searchType == "I"'>
+		 			AND TB1.mem_id LIKE '%'||#{searchWord}||'%'
+		 		</when>
+		 		<when test='searchType == "C"'>
+		 			AND TB1.bo_content LIKE '%'||#{searchWord}||'%'
+		 		</when>
+		 	</choose>
+		 </if>
+</sql>
+	<select id="countQnA" parameterType="com.mayday.qna.vo.QnASearchVO" resultType="int">
+		SELECT COUNT(*) FROM qna_board TB1
+		WHERE 1=1
+		<include refid="search"/>
+	</select>
+	<select id="countQnABoard" >
+		SELECT COUNT(*)
+		FROM qna_board 
+		WHERE group_layer = 0
+		AND bo_check = 'N'	
+	</select>
+	<select id="countAns">
+		SELECT COUNT(*)
+		FROM qna_board
+		WHERE mem_id = #{memId}
+		AND group_layer = 1
+		AND bo_check = 'N'
+	</select>
+	<select id="getQnABoard" resultType="com.mayday.qna.vo.QnAVO">
+		SELECT  bo_no, 
+			    a.mem_id, 
+			    bo_title, 
+			    bo_content, 
+			    bo_reg_date, 
+			    original_no, 
+			    group_ord, 
+			    group_layer, 
+			    bo_check, 
+			    ans_mem_id,
+			    b.mem_name as expert_name
+			FROM qna_board a, member b
+			WHERE a.ans_mem_id = b.mem_id(+)
+			AND bo_no = #{boNo}
+	</select>
+	<select id="getList" resultType="com.mayday.qna.vo.QnAVO" parameterType="com.mayday.qna.vo.QnASearchVO" >
+		 <include refid="common.prePaging"/>
+		 SELECT TB1.*,
+		        TB2.expert_name
+		 FROM (SELECT a.bo_no,
+		                a.mem_id,
+		                a.bo_title,
+		                a.bo_content,
+		                to_char(a.bo_reg_date,'YYYY-MM-DD') as bo_reg_date,
+		                a.original_no,
+		                a.group_ord,
+		                a.group_layer,
+		                a.bo_check,
+		                a.ans_mem_id,
+		                b.mem_name as mem_name
+		         FROM qna_board a ,member b
+		         WHERE a.mem_id = b.mem_id)TB1 , (SELECT a.bo_no,
+		                                                a.mem_id,
+		                                                a.bo_title,
+		                                                a.group_layer,
+		                                                a.original_no,
+		                                                b.mem_name as expert_name
+		                                         FROM qna_board a ,member b
+		                                         WHERE a.ans_mem_id = b.mem_id(+)) TB2
+		WHERE TB1.bo_no = TB2.bo_no
+		 <include refid="search"/>
+		 ORDER BY TB1.original_no DESC, TB1.group_ord ASC
+		 <include refid="common.endPaging"/>
+	</select>
+	<select id="getQnAList" resultType="com.mayday.qna.vo.QnAVO" parameterType="String" >
+		 SELECT T1.*,
+		        T2.expert_name
+		 FROM (SELECT a.bo_no,
+		                a.mem_id,
+		                a.bo_title,
+		                a.bo_content,
+		                TO_CHAR(a.bo_reg_date,'YYYY-MM-DD') as bo_reg_date,
+		                a.original_no,
+		                a.group_ord,
+		                a.group_layer,
+		                a.bo_check,
+		                a.ans_mem_id,
+		                b.mem_name as mem_name
+		         FROM qna_board a ,member b
+		         WHERE a.mem_id = b.mem_id AND a.mem_id = #{memId}
+		         								)T1 , (SELECT a.bo_no,
+		                                                a.mem_id,
+		                                                a.bo_title,
+		                                                a.group_layer,
+		                                                a.original_no,
+		                                                b.mem_name as expert_name
+		                                         FROM qna_board a ,member b
+		                                         WHERE a.ans_mem_id = b.mem_id(+)) T2
+		WHERE t1.bo_no = t2.bo_no
+		 ORDER BY t1.original_no DESC, t1.group_ord ASC
+	</select>
+	<insert id="insertQnABoard" parameterType="com.mayday.qna.vo.QnAVO">
+	INSERT INTO qna_board
+		(bo_no,		mem_id,		 bo_title, 
+		bo_content,	bo_reg_date, 	original_no, 
+		group_ord, 	group_layer, 	bo_check, 		ans_mem_id)
+	VALUES(qna_board_SEQ.nextval, #{memId}, #{boTitle}, 
+			#{boContent}, sysdate, qna_board_SEQ.currval,
+			0, 0, 'N', NULL)
+	</insert>
+	<update id="updateQnABoard" parameterType="com.mayday.qna.vo.QnAVO">
+		UPDATE qna_board
+		SET bo_title=#{boTitle}, bo_content=#{boContent}, ans_mem_id = #{ansMemId}
+		WHERE bo_no=#{boNo}
+	</update>
+	<delete id="deleteQnABoard" >
+		DELETE from qna_board WHERE bo_no=#{boNo}
+	</delete>
+	<delete id="deleteAnsBoard" parameterType="com.mayday.qna.vo.QnAVO" >
+		DELETE from qna_board WHERE original_no = #{originalNo}
+	</delete>
+	<insert id="insertAnsBoard" parameterType="com.mayday.qna.vo.QnAVO">
+	INSERT INTO qna_board
+		(bo_no,		mem_id,		 bo_title, 
+		bo_content,	bo_reg_date, 	original_no, 
+		group_ord, 	group_layer, 	bo_check, 		ans_mem_id)
+	VALUES(qna_board_SEQ.nextval, #{memId}, LPAD('RE: ',7)||#{boTitle}, 
+			#{boContent}, sysdate, #{boNo},
+			1, 1, 'N', #{ansMemId})
+	</insert>
+	<update id="checkQna" parameterType="com.mayday.qna.vo.QnAVO">
+		UPDATE qna_board
+		SET bo_check = #{boCheck}
+		WHERE bo_no=#{boNo}
+	</update>
+</mapper>

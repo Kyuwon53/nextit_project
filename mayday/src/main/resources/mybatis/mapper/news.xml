@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.news.service.INewsDao">
+<sql id="search">
+<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchCate)">
+	AND b.CODE_CD = #{searchCate}
+</if>
+
+	<if
+			test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<choose>
+				<when test='searchCateType == "title"'>
+					AND news_title LIKE '%'||#{searchWord}||'%'
+				</when>
+				<when test='searchCateType == "press"'>
+					AND news_press Like '%'||#{searchWord}||'%'
+				</when>
+			</choose>
+		</if>
+	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchOrder)">
+	order by news_reg_date desc
+	</if>
+</sql>
+<select id="getNewsCount" resultType="int" parameterType="com.mayday.news.service.NewsSearchVO">
+SELECT
+   count(bo_no)
+FROM news a , code_board b
+where a.bo_cd = b.code_cd
+<include refid="search"></include>
+</select>
+
+<select id="getNewsList" resultType="com.mayday.news.service.NewsVO" parameterType="com.mayday.news.service.NewsSearchVO">
+<include refid="common.prePaging"></include>
+SELECT
+		bo_No
+        ,b.code_name as bo_cd_name
+       , news_title
+       , news_press
+       , to_char(news_reg_date,'YYYY-MM-DD') as news_reg_date 
+       , news_link
+FROM news a , code_board b
+where a.bo_cd = b.code_cd
+<include refid="search"></include>
+<include refid="common.endPaging"></include>
+order by row_no
+</select>
+<select id="getNewsListForExcel" resultType="com.mayday.news.service.NewsVO">
+SELECT
+		bo_No
+        ,b.code_name as bo_cd_name
+       , news_title
+       , news_press
+       , to_char(news_reg_date,'YYYY-MM-DD') as news_reg_date 
+       , news_link
+FROM news a , code_board b
+where a.bo_cd = b.code_cd
+</select>
+<update id="insertNews" parameterType="com.mayday.news.service.NewsVO">
+INSERT INTO news (
+    bo_no
+    , bo_cd
+    , news_title
+    , news_press
+    , news_reg_date
+    , news_link
+) VALUES (
+    NEWS_SEQ.nextval
+    , #{boCd}
+    , #{newsTitle}
+    , #{newsPress}
+    , to_char(sysdate,'YYYY-MM-DD')
+    , #{newsLink}
+)
+</update>
+
+<update id="deleteNews" parameterType="com.mayday.news.service.NewsVO">
+DELETE FROM news
+WHERE bo_no = #{boNo}
+
+</update>
+</mapper>

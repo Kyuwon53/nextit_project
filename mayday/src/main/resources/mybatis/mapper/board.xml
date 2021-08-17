@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.board.service.IBoardDao">
+	<sql id="search">
+		<if
+			test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<choose>
+				<when test='searchType == "T"'>
+					AND bo_title LIKE '%'||#{searchWord}||'%'
+				</when>
+				<when test='searchType == "C"'>
+					AND bo_content LIKE '%'||#{searchWord}||'%'
+				</when>
+				
+			</choose>
+		</if>
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchCd)">
+			<choose>
+				<when test='searchCd =="BOD11 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+				<when test='searchCd =="BOD12 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+				<when test='searchCd =="BOD13 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+				<when test='searchCd =="BOD14 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+				<when test='searchCd =="BOD15 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+				<when test='searchCd =="BOD16 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+				<when test='searchCd =="BOD17 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+				<when test='searchCd =="BOD18 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+				<when test='searchCd =="BOD19 "'>
+					AND a.bo_cd Like '%'||#{searchCd}||'%'
+				</when>
+			</choose>
+		</if>
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchOrder)">
+			<choose>
+				<when test='searchOrder =="S"'>
+					ORDER BY bo_no DESC
+				</when>
+				<when test='searchOrder =="E"'>
+					ORDER BY bo_hit DESC
+				</when>
+				<when test='searchOrder =="B"'>
+					ORDER BY BO_REG_DATE DESC
+				</when>
+			</choose>
+		</if>
+		<if test="@org.apache.commons.lang3.StringUtils@isBlank(searchOrder)">
+		ORDER BY BO_NO DESC
+		</if>
+			
+		
+	</sql>
+
+<select id="getboard" resultType="com.mayday.board.vo.BoardVO" parameterType="int">
+SELECT rownum as board_no
+       , bo_no
+       , bo_cd
+       , a.mem_id as mem_id
+       , c.mem_name as mem_name
+       , bo_title
+       , bo_content
+       , bo_reg_date
+       , bo_mod_date
+       , bo_hit
+       , b.code_name as code_name
+       , b.code_parent_cd as code_parent_cd
+FROM board a, code_board b, member c
+where a.bo_cd = b.code_cd
+and a.mem_id = c.mem_id
+AND bo_no = #{boNo}
+</select>
+
+<select id="getboardList" resultType="com.mayday.board.vo.BoardVO" parameterType="com.mayday.board.vo.BoardSerchVO">
+<include refid="common.prePaging"/>
+SELECT rownum as board_no
+       , bo_no
+       , bo_cd
+       , a.mem_id as mem_id
+       , c.mem_name as mem_name
+       , bo_title
+       , bo_content
+       , TO_CHAR(bo_reg_date,'YYYY-MM-DD') as bo_reg_date
+       , bo_mod_date
+       , bo_hit
+       , b.code_name as code_name
+       , b.code_parent_cd as code_parent_cd
+FROM board a, code_board b, member c
+where a.bo_cd = b.code_cd
+and a.mem_id = c.mem_id
+AND  b.code_parent_cd= #{boardParentCd}
+<include refid="search"/>
+<include refid="common.endPaging"/>
+</select>
+<select id="getUserBoardList" resultType="com.mayday.board.vo.BoardVO" parameterType="com.mayday.board.vo.BoardSerchVO">
+<include refid="common.prePaging"/>
+	SELECT bo_no
+	       , bo_cd
+	       , mem_id
+	       , bo_title
+	       , bo_content
+	       , bo_reg_date
+	       , bo_mod_date
+	       , bo_hit
+	FROM board
+	WHERE mem_id =#{memId}
+<include refid="search"/>
+<include refid="common.endPaging"/>
+</select>
+<select id="getCountBoard" resultType="int" parameterType="com.mayday.board.vo.BoardSerchVO">
+
+		SELECT count(bo_no)
+		FROM board a, code_board b
+		WHERE 1=1
+		and a.bo_cd = b.code_cd
+		and b.code_parent_cd=#{boardParentCd}
+		<include refid="search"/>
+
+</select>
+
+<update id="increaseHit" parameterType="int">
+		UPDATE board
+		SET bo_hit = bo_hit + 1
+		WHERE bo_no = #{boNo}
+</update>
+
+<update id="updateBoard" parameterType="com.mayday.board.vo.BoardVO">
+		UPDATE board
+		SET bo_cd = #{boCd}, bo_title = #{boTitle}, bo_content = #{boContent}, bo_mod_date = sysdate
+		WHERE bo_no = #{boNo}
+</update>
+
+<update id="deleteBoard" parameterType="com.mayday.board.vo.BoardVO">
+DELETE FROM board WHERE bo_no= #{boNo}
+</update>
+
+<update id="insertBoard" parameterType="com.mayday.board.vo.BoardVO">
+INSERT INTO board ( 
+		  bo_no
+       , bo_cd
+       , mem_id
+       , bo_title
+       , bo_content
+       , bo_reg_date
+       , bo_mod_date
+       , bo_hit
+		) VALUES (
+		BOARD_SEQ.nextval
+		, #{boCd}
+		, #{memId}
+		, #{boTitle}
+		, #{boContent}
+		, sysdate
+		, null
+		, 0
+		)
+</update>
+<insert id="insertReBoard" parameterType="com.mayday.board.vo.BoardVO">
+INSERT INTO board ( 
+		  bo_no  , bo_cd  , mem_id
+       , bo_title , bo_content , bo_reg_date
+       , bo_mod_date  , bo_hit  
+		) VALUES (
+		BOARD_SEQ.nextval	, #{boCd}	, #{memId}
+		, #{boTitle}	, #{boContent}	, sysdate
+		, null 	, 0 
+		)
+</insert>
+</mapper>
+

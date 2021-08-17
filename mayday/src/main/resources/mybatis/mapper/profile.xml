@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.common.service.IMemberProfileDao">
+	<select id="getMemProfile" parameterType="String" resultType="com.mayday.common.vo.MemberProfileVO">
+		SELECT mem_profile_no
+		       , mem_id
+		       , profile_name
+		       , profile_original_name
+		       , profile_size
+		       , profile_fancy_size
+		       , profile_content_type
+		       , profile_path
+		       , profile_reg_date
+		FROM member_profile
+		WHERE mem_id = #{memId}
+	</select>
+	<insert id="insertMemProfile" parameterType="com.mayday.common.vo.MemberProfileVO">
+	INSERT INTO member_profile (
+				    mem_profile_no   , mem_id   , profile_name
+				    , profile_original_name    , profile_size    , profile_fancy_size
+				    , profile_content_type    , profile_path	    
+				    , profile_reg_date
+				) VALUES (
+				    seq_member_profile.NEXTVAL   , #{memId}   , #{profileName}
+				    , #{profileOriginalName}    , #{profileSize}, #{profileFancySize}
+				    , #{profileContentType}    , #{profilePath}   
+				    , sysdate
+				)
+	</insert>
+	<update id="updateMemProfile" parameterType="com.mayday.common.vo.MemberProfileVO">
+	UPDATE member_profile
+		SET
+	      profile_name = #{profileName},
+	      profile_original_name = #{profileOriginalName},
+	      profile_size = #{profileSize},
+	      profile_fancy_size = #{profileFancySize},
+	      profile_content_type = #{profileContentType}
+	WHERE mem_id = #{memId}
+	</update>
+	<delete id="deleteMemProfile" parameterType="String">
+	DELETE FROM member_profile WHERE WHERE mem_id = #{memId} 
+	</delete>
+</mapper>

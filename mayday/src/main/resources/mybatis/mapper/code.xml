@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mayday.code.service.ICodeDao">
+	<select id="getCodeList" parameterType="java.lang.String" resultType="com.mayday.code.vo.CodeVO">
+		SELECT code_cd
+		       , code_parent_cd
+		       , code_name
+		FROM code_board
+		WHERE code_parent_cd=#{codeParentCd}
+	</select>
+	<select id="getCodeName" parameterType="java.lang.String" resultType="com.mayday.code.vo.CodeVO">
+		SELECT code_cd
+				,code_parent_cd
+				,code_name
+		FROM code_board
+		WHERE code_cd = #{codeCd}
+	</select>
+</mapper>
